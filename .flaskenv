@@ -1,0 +1,3 @@
+FLASK_APP=iacc_secret_lists.py
+FLASK_RUN_PORT=8000
+FLASK_RUN_HOST=127.0.0.1
