@@ -2,5 +2,40 @@
 
 
 {% block content %}
-    <h1>Hi, {{ current_user.user_handle }}!</h1>
+    <h1>Hi, {{ user_handle }}!</h1>
+
+    <!--input type="text" id="tags"--> 
+    
+
+    <div>Add a new user:  
+        <form action="{{ url_for('add') }}" method="POST">  
+            <input type="text" name="add_user_handle" id="tags">  
+            <input type="submit" value="Add User" class="button">  
+        </form>  
+    </div>
+
+    <div>
+        <ul>
+            {% for ul in subscribed_to %}
+                <li>
+                    <input type="checkbox" id="{{ loop.index }}" name="taskCheckbox" value="{{ loop.index }}">
+                    <label for="{{ loop.index }}">{{ ul.subscribes_to_did }}</label>
+                    <a href="/delete/{{ ul.id }}">Delete</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script> 
+    $( function() { 
+        var availableTags = [ 
+            {% for handle in follows %} 
+                "{{handle}}", 
+            {% endfor %} 
+        ]; 
+        $( "#tags" ).autocomplete({ 
+        source: availableTags 
+        }); 
+    } ); 
+  </script> 
 {% endblock %}

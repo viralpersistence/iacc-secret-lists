@@ -1,5 +1,13 @@
 <head>
     <title>microblog</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>   
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>   
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/ui-lightness/jquery-ui.css" rel="stylesheet" type="text/css" />  
+    <style>
+        .error {
+            color: red;
+        }
+    </style> 
 </head>
 <body>
     <div>
@@ -16,7 +24,7 @@
     {% if messages %}
     <ul>
         {% for message in messages %}
-        <li>{{ message }}</li>
+        <li><p class=error><strong>Error: </strong>{{ message }}</li>
         {% endfor %}
     </ul>
     {% endif %}
