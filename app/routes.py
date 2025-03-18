@@ -1,12 +1,14 @@
 from app import app, db
 from app.forms import LoginForm
-from app.models import DbUser, FeedUser, UserList#UserFollows
+from app.models import DbUser, FeedUser, UserList, UserFollows
 from flask_login import current_user, login_user, login_required, logout_user
 from flask import render_template, flash, redirect, url_for, request
 from urllib.parse import urlsplit
 from atproto import IdResolver, Client
+from app.helpers import load_user_follows
 import sqlalchemy as sa
 import os
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,9 +21,13 @@ idr = IdResolver()
 @login_required
 def index():
     user = db.session.scalar(sa.select(FeedUser).where(FeedUser.id == current_user.feeduser_id))
+    user_handle = idr.did.resolve(user.did).get_handle()
 
-    user_handle = idr.did.resolve(user.did)
+    ufs = db.session.scalars(sa.select(UserFollows).where(UserFollows.feeduser_id == current_user.feeduser_id)).all()
+    handles = [uf.follows_handle for uf in ufs]
 
+
+    '''
     bsky_client = Client("https://bsky.social")
     bsky_client.login(os.environ.get('HANDLE'), os.environ.get('PASSWORD'))
 
@@ -40,27 +46,34 @@ def index():
             cursor = res['cursor']
         else:
             more_follows = False
+    '''
 
     subscribed_to = db.session.scalars(sa.select(UserList).where(UserList.feeduser_id==current_user.feeduser_id)).all()
 
-
-    #subscribed_to_handles = []
-    #for elem in subscribed_to:
-    #    handle = idr.did.resolve(elem.subscribes_to_did).also_known_as[0]
-    #    subscribed_to_handles.append(handle)
-
+    #return render_template("index.html", follows=handles, user_handle=user_handle, subscribed_to=subscribed_to)
+    # TODO: listen for changes to handle or display name associated with did
     return render_template("index.html", follows=handles, user_handle=user_handle, subscribed_to=subscribed_to)
 
 @app.route('/add', methods=['POST']) 
 def add():
     add_user_handle = request.form['add_user_handle']
     add_user_did = idr.handle.resolve(add_user_handle)
+    #add_user_disp_name = 
 
     if add_user_did is None:
         flash(f'Bluesky user {add_user_handle} does not exist')
         return redirect(url_for('index')) 
 
-    userlist_entry = UserList(feeduser_id=current_user.feeduser_id, subscribes_to_did=add_user_did)
+    actor = requests.get(
+        "https://public.api.bsky.app/xrpc/app.bsky.actor.getProfile",
+        params={
+            "actor": add_user_did,
+        }
+    ).json()
+
+    add_user_disp_name = actor['displayName']
+
+    userlist_entry = UserList(feeduser_id=current_user.feeduser_id, subscribes_to_did=add_user_did, subscribes_to_handle=add_user_handle, subscribes_to_disp_name=add_user_disp_name)
     db.session.add(userlist_entry) 
     db.session.commit() 
   
@@ -83,11 +96,11 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user_did = idr.handle.resolve(form.username.data)
+        user_password = form.password.data
         print(user_did)
 
         if user_did:
-            #user = db.session.scalar(sa.select(DbUser).where(DbUser.user_handle == form.username.data))
-            user = db.session.scalar(sa.select(DbUser).join(FeedUser, DbUser.feeduser_id == FeedUser.id).where(FeedUser.did == user_did))
+            user = db.session.scalar(sa.select(DbUser).join(FeedUser, DbUser.feeduser_id == FeedUser.id).where(sa.and_(FeedUser.did == user_did, DbUser.password == user_password)))
         else:
             user = None
 
@@ -95,6 +108,7 @@ def login():
             flash('Invalid username or password')
             return redirect(url_for('login'))
 
+        load_user_follows(user)
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
 

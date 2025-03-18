@@ -19,14 +19,15 @@
             {% for ul in subscribed_to %}
                 <li>
                     <input type="checkbox" id="{{ loop.index }}" name="taskCheckbox" value="{{ loop.index }}">
-                    <label for="{{ loop.index }}">{{ ul.subscribes_to_did }}</label>
+                    <label for="{{ loop.index }}">{{ ul.subscribes_to_handle }}</label>
                     <a href="/delete/{{ ul.id }}">Delete</a>
                 </li>
             {% endfor %}
         </ul>
     </div>
 
-    <script> 
+    <script>
+
     $( function() { 
         var availableTags = [ 
             {% for handle in follows %} 

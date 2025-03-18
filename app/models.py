@@ -20,20 +20,22 @@ class DbUser(UserMixin, db.Model):
     def __repr__(self):
         return '<User {}>'.format(self.user_handle)
 
-'''
-class UserFollows(db.Model):
-    __tablename__ = 'userfollows'
-    id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    feeduser_id: so.Mapped[int] = so.mapped_column(sa.Integer)
-    follows_did: so.Mapped[str] = so.mapped_column(sa.String(255))
-    uri: so.Mapped[str] = so.mapped_column(sa.String(255))
-'''
-
 class UserList(db.Model):
     __tablename__ = 'userlist'
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     feeduser_id: so.Mapped[int] = so.mapped_column(sa.Integer)
     subscribes_to_did: so.Mapped[str] = so.mapped_column(sa.String(255))
+    subscribes_to_handle: so.Mapped[str] = so.mapped_column(sa.String(255))
+    subscribes_to_disp_name: so.Mapped[str] = so.mapped_column(sa.String(255))
+
+class UserFollows(db.Model):
+    __tablename__ = 'userfollows'
+    id: so.Mapped[int] = so.mapped_column(primary_key=True)
+    feeduser_id: so.Mapped[int] = so.mapped_column(sa.Integer)
+    follows_did: so.Mapped[str] = so.mapped_column(sa.String(255))
+    follows_handle: so.Mapped[str] = so.mapped_column(sa.String(255))
+    follows_disp_name: so.Mapped[str] = so.mapped_column(sa.String(255))
+    uri: so.Mapped[str] = so.mapped_column(sa.String(255))
 
 
 @login.user_loader
