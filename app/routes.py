@@ -26,35 +26,11 @@ def index():
     ufs = db.session.scalars(sa.select(UserFollows).where(UserFollows.feeduser_id == current_user.feeduser_id)).all()
     handles = [uf.follows_handle for uf in ufs]
 
+    subscribed_to = db.session.scalars(sa.select(UserList).where(UserList.feeduser_id==current_user.feeduser_id).order_by(UserList.subscribes_to_disp_name)).all()
 
-    '''
-    bsky_client = Client("https://bsky.social")
-    bsky_client.login(os.environ.get('HANDLE'), os.environ.get('PASSWORD'))
-
-    more_follows = True
-    cursor = ''
-
-    handles = []
-
-    while more_follows:
-        res = bsky_client.get_follows(actor=user.did, cursor=cursor, limit=100)
-
-        if res['follows']:
-            handles += [f.handle for f in res['follows']]
-
-        if res['cursor']:
-            cursor = res['cursor']
-        else:
-            more_follows = False
-    '''
-
-    subscribed_to = db.session.scalars(sa.select(UserList).where(UserList.feeduser_id==current_user.feeduser_id)).all()
-
-    #return render_template("index.html", follows=handles, user_handle=user_handle, subscribed_to=subscribed_to)
-    # TODO: listen for changes to handle or display name associated with did
     return render_template("index.html", follows=handles, user_handle=user_handle, subscribed_to=subscribed_to)
 
-@app.route('/add', methods=['POST']) 
+@app.route('/add', methods=['POST'])
 def add():
     add_user_handle = request.form['add_user_handle']
     add_user_did = idr.handle.resolve(add_user_handle)
@@ -72,6 +48,14 @@ def add():
     ).json()
 
     add_user_disp_name = actor['displayName']
+
+    if 'displayName' not in actor:
+        flash(f'Bluesky user {add_user_handle} does not exist')
+        return redirect(url_for('index')) 
+    else:
+        add_user_disp_name = actor['displayName']
+
+    
 
     userlist_entry = UserList(feeduser_id=current_user.feeduser_id, subscribes_to_did=add_user_did, subscribes_to_handle=add_user_handle, subscribes_to_disp_name=add_user_disp_name)
     db.session.add(userlist_entry) 

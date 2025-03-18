@@ -10,21 +10,28 @@
     <div>Add a new user:  
         <form action="{{ url_for('add') }}" method="POST">  
             <input type="text" name="add_user_handle" id="tags">  
-            <input type="submit" value="Add User" class="button">  
+            <input type="submit" value="Add Bluesky User" class="button">  
         </form>  
     </div>
 
-    <div>
-        <ul>
-            {% for ul in subscribed_to %}
-                <li>
-                    <input type="checkbox" id="{{ loop.index }}" name="taskCheckbox" value="{{ loop.index }}">
-                    <label for="{{ loop.index }}">{{ ul.subscribes_to_handle }}</label>
-                    <a href="/delete/{{ ul.id }}">Delete</a>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
+    <table id="data" class="table table-striped">
+        <thead>
+        <tr>
+            <th>Handle</th>
+            <th>Display Name</th>
+            <th>Remove From List</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for ul in subscribed_to %}
+            <tr>
+            <td>{{ ul.subscribes_to_handle }}</td>
+            <td>{{ ul.subscribes_to_disp_name }}</td>
+            <td><a href="/delete/{{ ul.id }}" class="btn btn-info" role="button">Remove</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 
     <script>
 
